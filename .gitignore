@@ -1,0 +1,9 @@
+node_modules
+yarn.lock
+package-lock.json
+pnpm-lock.yml
+yarn-error.log
+
+docs
+dist
+test.js

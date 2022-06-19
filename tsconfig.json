@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationDir": "dist/types"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

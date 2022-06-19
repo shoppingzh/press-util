@@ -1,0 +1,17 @@
+{
+  "name": "press-util",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "description": "vuepress/vitepress support utils",
+  "types": "dist/types",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.3",
+    "@types/node": "^18.0.0",
+    "@types/rollup": "^0.54.0",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "build": "rollup -c --configPlugin typescript"
+  }
+}
