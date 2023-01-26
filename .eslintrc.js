@@ -16,5 +16,6 @@ module.exports = {
   rules: {
     semi: [2, 'never'],
     'id-blacklist': [0],
+    'no-param-reassign': [0],
   },
 }

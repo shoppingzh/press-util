@@ -2,67 +2,78 @@ import { Dirent, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { getBasename } from './filename'
 
-const ORDER_FILE_NAME = '.ORDER'
+const META_FILE_NAME = '.ORDER'
 
-interface File {
+interface DocMeta {
+  name?: string
+  order?: number
+  group?: string
+}
+
+export interface DocFile {
   dirent: Dirent
-  path: string
+  meta: DocMeta
 }
 
-interface OrderMap {
-  [key: string]: number
-}
-
-function parseOrders(text: string) {
-  const map: OrderMap = {}
-  if (!text) return map
-  text.split(/[\n|\r\n]/g).forEach((line, index) => {
-    const trimLine = line.trim()
-    if (!trimLine) return
-    map[trimLine] = index + 1
-  })
-  return map
+function parseMetas(text: string): DocMeta[] {
+  if (!text) return []
+  return text
+    .split(/[\n|\r\n]/g)
+    .filter((line) => line.trim())
+    .map((line, index) => {
+      const parts = line.split(/\$/g)
+      return {
+        name: parts[0],
+        group: parts[1],
+        order: index + 1,
+      }
+    })
 }
 
 /**
- * 读取目录。（与`readdirSync`不同的是，该函数会自动读取排序文件并对文件进行排序）
- * @param path
+ * 判断文件是否为文档
+ * @param filename 文件名
  * @returns
  */
-export function readdirByOrders(path: string): Dirent[] {
+export function isDocFile(filename: string) {
+  return filename && /\.md$/.test(filename)
+}
+
+/**
+ * 读取指定目录下的文档集合
+ * @param path 路径
+ * @returns
+ */
+export function readDocFiles(path: string): DocFile[] {
   const list = readdirSync(path, { withFileTypes: true })
-  const orderItemIndex = list.findIndex(
-    (o) => o.isFile() && o.name.toUpperCase() === ORDER_FILE_NAME,
+  const metaFileIndex = list.findIndex(
+    (o) => o.isFile() && o.name.toUpperCase() === META_FILE_NAME,
   )
-  if (orderItemIndex < 0) return list
-  const orderItem = list[orderItemIndex]
-  list.splice(orderItemIndex, 1)
-  const orderContent = readFileSync(join(path, orderItem.name), {
+  if (metaFileIndex < 0) return list.map((dirent) => ({ dirent, meta: {} }))
+  const metaFile = list[metaFileIndex]
+  list.splice(metaFileIndex, 1)
+  const metaContent = readFileSync(join(path, metaFile.name), {
     encoding: 'utf-8',
   })
-  const orderMap = parseOrders(orderContent)
-  list.sort((a, b) => {
-    const aName = a.name
-    const bName = b.name
-    const aBaseName = getBasename(aName)
-    const bBaseName = getBasename(bName)
-    const aOrder = orderMap[aName] || orderMap[aBaseName] || 0
-    const bOrder = orderMap[bName] || orderMap[bBaseName] || 0
-    return aOrder - bOrder
+  const metas = parseMetas(metaContent)
+  const metaMap = metas.reduce((map, meta) => {
+    map[meta.name] = meta
+    return map
+  }, {} as Record<string, DocMeta>)
+  const docFiles = list.map<DocFile>((dirent) => {
+    const filename = dirent.name
+    const basename = getBasename(filename)
+    return {
+      dirent,
+      meta: metaMap[filename] || metaMap[basename],
+    }
   })
-  return list
-}
+  docFiles.sort((a, b) => {
+    const aMeta = a.meta
+    const bMeta = b.meta
+    if (!aMeta || !bMeta) return -1
+    return aMeta.order - bMeta.order
+  })
 
-/**
- * 查找目录下的所有文件，并根据排序文件（如果有的话）进行排序
- * @param path 目录路径
- * @returns
- */
-export function listFiles(path: string): File[] {
-  return readdirByOrders(path)
-    .filter((o) => o.isFile())
-    .map((o) => ({
-      dirent: o,
-      path: join(path, o.name),
-    }))
+  return docFiles
 }

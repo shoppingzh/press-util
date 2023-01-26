@@ -1,6 +1,6 @@
 import { join } from 'path'
 import config from './config'
-import { listFiles } from './file'
+import { readDocFiles } from './file'
 import { normalize } from './path'
 
 /**
@@ -9,9 +9,11 @@ import { normalize } from './path'
  * @returns
  */
 export function getFirstDocLink(path: string): string {
-  const files = listFiles(join(config.docs, path))
-  if (!files.length) return null
-  let link = normalize(join(path, files[0].dirent.name))
+  const docFiles = readDocFiles(join(config.docs, path)).filter((o) =>
+    o.dirent.isFile(),
+  )
+  if (!docFiles.length) return null
+  let link = normalize(join(path, docFiles[0].dirent.name))
   if (!/^\//.test(link)) {
     link = '/' + link
   }
