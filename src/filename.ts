@@ -1,8 +1,7 @@
-
 /**
  * 获取文件名
  * @param filename 文件名
- * @returns 
+ * @returns
  */
 export function getBasename(filename: string): string {
   if (!filename) return filename
@@ -13,7 +12,7 @@ export function getBasename(filename: string): string {
 /**
  * 获取文件扩展名
  * @param filename 文件名
- * @returns 
+ * @returns
  */
 export function getExtension(filename: string): string {
   if (!filename) return filename

@@ -6,7 +6,7 @@ import { normalize } from './path'
 /**
  * 获取路径下的第一篇文档的链接
  * @param path 路径
- * @returns 
+ * @returns
  */
 export function getFirstDocLink(path: string): string {
   const files = listFiles(join(config.docs, path))

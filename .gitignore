@@ -1,9 +1,10 @@
 node_modules
 yarn.lock
 package-lock.json
-pnpm-lock.yml
+pnpm-lock.yaml
 yarn-error.log
 
 docs
 dist
 test.js
+
