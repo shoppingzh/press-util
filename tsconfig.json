@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
+    "allowJs": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "declaration": true,
-    "declarationDir": "dist/types"
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["rollup.config.ts", "build/**/*"],
   "exclude": ["node_modules"]
 }

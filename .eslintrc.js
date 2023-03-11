@@ -3,19 +3,13 @@ module.exports = {
   root: true,
   env: {
     node: true,
-    es6: true,
+    browser: true,
   },
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   extends: [
-    'eslint:recommended',
+    '@shoppingzh', //
     'plugin:@typescript-eslint/recommended',
-    '@shoppingzh',
-    'prettier',
   ],
-  rules: {
-    semi: [2, 'never'],
-    'id-blacklist': [0],
-    'no-param-reassign': [0],
-  },
+  rules: {},
 }
