@@ -7,11 +7,20 @@ const META_FILE_NAME = '.ORDER'
 
 /**
  * 判断文件是否为文档
- * @param filename 文件名
- * @returns
+ * @param dirent 
+ * @returns 
  */
-export function isDocFile(filename: string) {
-  return filename && /\.md$/gi.test(filename)
+export function isDocFile(dirent: Dirent) {
+  return dirent && dirent.isFile() && /\.md$/gi.test(dirent.name)
+}
+
+/**
+ * 判断是否为有效目录
+ * @param dirent 
+ * @returns 
+ */
+export function isValidDir(dirent: Dirent) {
+  return dirent && dirent.isDirectory() && !/^[._]/gi.test(dirent.name)
 }
 
 interface Doc {
@@ -27,7 +36,7 @@ interface DocGroup {
 
 export function readDocGroups(path: string): DocGroup[] {
   const list = readdirSync(path, { withFileTypes: true })
-  const fileList = list.filter(o => o.isFile() && isDocFile(o.name))
+  const fileList = list.filter(o => isDocFile(o))
 
   // 读取元信息
   const metaFileIndex = list.findIndex(o => o.isFile() && o.name.toUpperCase() === META_FILE_NAME)
@@ -54,7 +63,7 @@ export function readDocGroups(path: string): DocGroup[] {
           file,
         }
       }),
-      dirs: list.filter(o => o.isDirectory())
+      dirs: list.filter(o => isValidDir(o))
     }
   })
 

@@ -57,7 +57,6 @@ export function parse(content: string | null): Meta {
         order: currentGroup.docs.length,
       })
     }
-
   }
 
   return meta
