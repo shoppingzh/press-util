@@ -67,5 +67,5 @@ export function readDocGroups(path: string): DocGroup[] {
     groups[0].docs.push(...hangDocs)
   }
 
-  return groups.filter(o => o.docs.length)
+  return groups
 }

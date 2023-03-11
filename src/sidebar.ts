@@ -30,8 +30,9 @@ export function autoGenerateSidebar(): Sidebar {
   const sidebar: Sidebar = {}
   const readDeep = (path: string, parentPath = '') => {
     const groups = readDocGroups(path)
+
     if (parentPath) {
-      sidebar[getLinkPath(parentPath)] = groups.map(o => {
+      sidebar[getLinkPath(parentPath)] = groups.filter(o => o.docs.length).map(o => {
         return {
           text: o.name,
           collapsible: true,
