@@ -1,34 +1,9 @@
 import { Dirent, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { getBasename } from './filename'
+import { DEFAULT_GROUP_NAME, parse } from './meta'
 
 const META_FILE_NAME = '.ORDER'
-
-interface DocMeta {
-  name?: string
-  order?: number
-  group?: string
-}
-
-export interface DocFile {
-  dirent: Dirent
-  meta: DocMeta
-}
-
-function parseMetas(text: string): DocMeta[] {
-  if (!text) return []
-  return text
-    .split(/[\n|\r\n]/g)
-    .filter((line) => line.trim())
-    .map((line, index) => {
-      const parts = line.split(/\$/g)
-      return {
-        name: parts[0],
-        group: parts[1],
-        order: index + 1,
-      }
-    })
-}
 
 /**
  * 判断文件是否为文档
@@ -36,44 +11,61 @@ function parseMetas(text: string): DocMeta[] {
  * @returns
  */
 export function isDocFile(filename: string) {
-  return filename && /\.md$/.test(filename)
+  return filename && /\.md$/gi.test(filename)
 }
 
-/**
- * 读取指定目录下的文档集合
- * @param path 路径
- * @returns
- */
-export function readDocFiles(path: string): DocFile[] {
+interface Doc {
+  name: string
+  file: Dirent
+}
+
+interface DocGroup {
+  name: string,
+  docs: Doc[],
+  dirs: Dirent[],
+}
+
+export function readDocGroups(path: string): DocGroup[] {
   const list = readdirSync(path, { withFileTypes: true })
-  const metaFileIndex = list.findIndex(
-    (o) => o.isFile() && o.name.toUpperCase() === META_FILE_NAME,
-  )
-  if (metaFileIndex < 0) return list.map((dirent) => ({ dirent, meta: {} }))
-  const metaFile = list[metaFileIndex]
-  list.splice(metaFileIndex, 1)
-  const metaContent = readFileSync(join(path, metaFile.name), {
+  const fileList = list.filter(o => o.isFile() && isDocFile(o.name))
+
+  // 读取元信息
+  const metaFileIndex = list.findIndex(o => o.isFile() && o.name.toUpperCase() === META_FILE_NAME)
+  const meta = parse(metaFileIndex < 0 ? null : readFileSync(join(path, list[metaFileIndex].name), {
     encoding: 'utf-8',
-  })
-  const metas = parseMetas(metaContent)
-  const metaMap = metas.reduce((map, meta) => {
-    map[meta.name] = meta
-    return map
-  }, {} as Record<string, DocMeta>)
-  const docFiles = list.map<DocFile>((dirent) => {
-    const filename = dirent.name
-    const basename = getBasename(filename)
+  }))
+
+  const [ basenameMap, filenameMap ] = fileList.reduce((arr, o) => {
+    const [basenameMap, filenameMap] = arr
+    basenameMap[getBasename(o.name)] = o
+    filenameMap[o.name] = o
+    return arr
+  }, [{} as Record<string, Dirent>, {} as Record<string, Dirent>])
+
+  const metaFileMap: Record<string, 1> = {}
+  const groups = meta.groups.map(group => {
     return {
-      dirent,
-      meta: metaMap[filename] || metaMap[basename],
+      name: group.name === DEFAULT_GROUP_NAME ? '' : group.name,
+      docs: group.docs.map<Doc>(doc => {
+        const file = basenameMap[doc.name] || filenameMap[doc.name]
+        metaFileMap[file.name] = 1
+        return {
+          name: doc.name || '',
+          file,
+        }
+      }),
+      dirs: list.filter(o => o.isDirectory())
     }
   })
-  docFiles.sort((a, b) => {
-    const aMeta = a.meta
-    const bMeta = b.meta
-    if (!aMeta || !bMeta) return -1
-    return aMeta.order - bMeta.order
-  })
 
-  return docFiles
+  // 将游离文档放到第1组
+  const hangDocs = fileList.filter(o => !metaFileMap[o.name]).map<Doc>(o => ({
+    name: getBasename(o.name),
+    file: o
+  }))
+  if (hangDocs.length) {
+    groups[0].docs.push(...hangDocs)
+  }
+
+  return groups.filter(o => o.docs.length)
 }

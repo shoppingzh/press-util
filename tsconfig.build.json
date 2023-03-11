@@ -4,6 +4,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "declarationDir": "dist",
+    "strictNullChecks": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

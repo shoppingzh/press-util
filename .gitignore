@@ -10,3 +10,6 @@ dist
 coverage
 lib
 
+# test
+test.js
+docs

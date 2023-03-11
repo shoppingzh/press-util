@@ -1,6 +1,7 @@
+import { Dirent } from 'fs'
 import { join } from 'path'
 import config from './config'
-import { readDocFiles } from './file'
+import { readDocGroups } from './file'
 import { normalize } from './path'
 
 /**
@@ -8,12 +9,13 @@ import { normalize } from './path'
  * @param path 路径
  * @returns
  */
-export function getFirstDocLink(path: string): string {
-  const docFiles = readDocFiles(join(config.docs, path)).filter((o) =>
-    o.dirent.isFile(),
-  )
+export function getFirstDocLink(path: string): string | null {
+  const docFiles = readDocGroups(join(config.docs, path)).reduce((arr, o) => {
+    arr.push(...o.docs.map(x => x.file))
+    return arr
+  }, [] as Dirent[])
   if (!docFiles.length) return null
-  let link = normalize(join(path, docFiles[0].dirent.name))
+  let link = normalize(join(path, docFiles[0].name))
   if (!/^\//.test(link)) {
     link = '/' + link
   }

@@ -1,6 +1,6 @@
 import { join, resolve } from 'path'
 import config from './config'
-import { DocFile, readDocFiles } from './file'
+import { readDocGroups } from './file'
 import { getBasename } from './filename'
 import { getLinkPath } from './path'
 
@@ -29,36 +29,26 @@ interface Sidebar {
 export function autoGenerateSidebar(): Sidebar {
   const sidebar: Sidebar = {}
   const readDeep = (path: string, parentPath = '') => {
-    const docFiles = readDocFiles(path)
-    const groupDocFileMap = docFiles.reduce((map, o) => {
-      o.meta = o.meta || {}
-      let list = map[o.meta.group]
-      if (!list) {
-        map[o.meta.group] = list = []
-      }
-      if (o.dirent.isFile()) {
-        list.push(o)
-      }
-      return map
-    }, {} as Record<string, DocFile[]>)
+    const groups = readDocGroups(path)
     if (parentPath) {
-      sidebar[getLinkPath(parentPath)] = Object.entries(
-        groupDocFileMap,
-      ).map<SidebarGroup>(([group, docFiles]) => ({
-        text: group === 'undefined' ? undefined : group,
-        collapsible: true,
-        items: docFiles.map((o) => ({
-          text: getBasename(o.dirent.name),
-          link: getLinkPath(join(parentPath, o.dirent.name)),
-        })),
-      }))
-    }
-    docFiles
-      .filter((o) => o.dirent.isDirectory())
-      .forEach((o) => {
-        readDeep(join(path, o.dirent.name), join(parentPath, o.dirent.name))
+      sidebar[getLinkPath(parentPath)] = groups.map(o => {
+        return {
+          text: o.name,
+          collapsible: true,
+          items: o.docs.map(doc => ({
+            text: getBasename(doc.file.name),
+            link: getLinkPath(join(parentPath, doc.file.name)),
+          }))
+        }
       })
+    }
+    groups.forEach(group => {
+      group.dirs.forEach(dir => {
+        readDeep(join(path, dir.name), join(parentPath, dir.name))
+      })
+    })
   }
   readDeep(resolve(config.docs))
+
   return sidebar
 }
