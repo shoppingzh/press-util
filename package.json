@@ -1,16 +1,17 @@
 {
   "name": "press-util",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "vuepress/vitepress support utils",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
   "scripts": {
-    "dev": "rollup -c scripts/rollup.config.ts --configPlugin=typescript={tsconfig:'scripts/tsconfig.build.json'} --bundleConfigAsCjs --watch",
-    "build": "rollup -c scripts/rollup.config.ts --configPlugin=typescript={tsconfig:'scripts/tsconfig.build.json'} --bundleConfigAsCjs",
+    "dev": "rollup -c scripts/rollup.config.ts --configPlugin=\"typescript={tsconfig:'scripts/tsconfig.build.json'}\" --bundleConfigAsCjs --watch",
+    "build": "rollup -c scripts/rollup.config.ts --configPlugin=\"typescript={tsconfig:'scripts/tsconfig.build.json'}\" --bundleConfigAsCjs",
     "lint": "eslint .",
     "format": "eslint . --fix",
     "test": "jest",
